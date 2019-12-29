@@ -1,0 +1,18 @@
+{
+  "name": "cbrscraperweb",
+  "version": "1.0.0",
+  "description": "This project is the web page for the results from the run of the [cbrscraper](https://github.com/Syeerus/cbrscraper) during December 2019.",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "browserify": "^16.5.0",
+    "typescript": "^3.7.4",
+    "uglifyjs": "^2.4.11"
+  },
+  "scripts": {
+    "build": "npx tsc && browserify ./build/App.js -o ./js/App.js && uglifyjs ./js/App.js -o ./js/App.min.js",
+    "clean": "rm -rf ./build && rm -rf ./js"
+  },
+  "author": "Syeerus",
+  "license": "MIT"
+}
