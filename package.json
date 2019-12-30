@@ -6,11 +6,11 @@
   "dependencies": {},
   "devDependencies": {
     "browserify": "^16.5.0",
-    "typescript": "^3.7.4",
-    "uglifyjs": "^2.4.11"
+    "terser": "^4.4.3",
+    "typescript": "^3.7.4"
   },
   "scripts": {
-    "build": "npx tsc && browserify ./build/App.js -o ./js/App.js && uglifyjs ./js/App.js -o ./js/App.min.js",
+    "build": "npx tsc && browserify ./build/App.js -o ./js/App.js && npx terser --compress --mangle -o ./js/App.min.js ./js/App.js",
     "clean": "rm -rf ./build && rm -rf ./js"
   },
   "author": "Syeerus",
