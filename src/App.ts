@@ -51,14 +51,33 @@ class App {
     private _onDataFileLoaded(xhr: XMLHttpRequest) {
         if (xhr.status === 200) {
             let data = new Uint8Array(xhr.response);
-            try {
-                let decompressed_data = window.bz2.decompress(data, true);
-                let decoder = new TextDecoder();
-                this._radioData = JSON.parse(decoder.decode(decompressed_data));
+            let blob_url = window.URL.createObjectURL(new Blob([document.querySelector('#decompress-worker').textContent]));
+            let worker = new Worker(blob_url);
+            let app = this;
+            worker.onmessage = function(e) {
+                try {
+                    let decoder = new TextDecoder();
+                    app._radioData = JSON.parse(decoder.decode(e.data));
+                    console.log('Data file successfully parsed.');
+                }
+                catch (e) {
+                    console.log(e);
+                }
+
+                window.URL.revokeObjectURL(blob_url);
+                worker.terminate();
+            };
+
+            worker.onerror = function(e) {
+                console.log('An error occured: ', e);
             }
-            catch (e) {
-                console.log(e);
+
+            let url = document.location.href;
+            let index = url.indexOf('index.html');
+            if (index > -1) {
+                url = url.substring(0, index);
             }
+            worker.postMessage({data: data, url: url});
         }
         else {
             console.log('Error downloading data file: ' + xhr.statusText);

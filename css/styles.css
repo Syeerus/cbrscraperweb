@@ -1,0 +1,44 @@
+body {
+    background-color: #404e5c;
+    color: black;
+}
+
+p {
+    margin-bottom: 0.9rem;
+}
+
+ul > li {
+    margin: 0;
+}
+
+.page-container {
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #cdd9e3;
+    margin-top: 20px;
+    padding: 25px;
+}
+
+.centered {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.table {
+    border: 2px solid black;
+}
+
+.table th {
+    background-color: lightsteelblue;
+}
+
+.table th, .table td {
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    border-right: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+.hidden {
+    display: none;
+}
