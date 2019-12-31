@@ -10,8 +10,24 @@ class App {
     public static readonly DATA_FILE = 'cbrs.db.json.bz2';
     public static readonly MAX_DATA_TRANSFER_ATTEMPTS = 3;
 
+    private static _instance: App = null;
+
     private _radioData: any = null;
     private _dataTransferAttempts: number = 0;
+
+    private constructor() {
+    }
+
+    /**
+     * @description Returns the instance of the app.
+     */
+    public static getInstance(): App {
+        if (!App._instance) {
+            App._instance = new App();
+        }
+
+        return App._instance;
+    }
 
     /**
      * @description Returns the radio data.
@@ -98,6 +114,6 @@ class App {
 }
 
 (function() {
-    var app = new App();
+    var app = App.getInstance();
     app.init();
 }());
