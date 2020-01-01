@@ -5,8 +5,9 @@
  * @license MIT
  */
 
+import { UserInterface } from "./UserInterface";
 
-class App {
+export class App {
     public static readonly DATA_FILE = 'cbrs.db.json.bz2';
     public static readonly MAX_DATA_TRANSFER_ATTEMPTS = 3;
 
@@ -82,6 +83,9 @@ class App {
 
                 window.URL.revokeObjectURL(blob_url);
                 worker.terminate();
+
+                // Setup UI
+                UserInterface.getInstance().init();
             };
 
             worker.onerror = function(e) {

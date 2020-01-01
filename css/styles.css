@@ -42,3 +42,7 @@ ul > li {
 .hidden {
     display: none;
 }
+
+#sel-stations {
+    min-width: 200px;
+}
