@@ -9,7 +9,7 @@ import { App } from "./App";
 
 export class PlaylistModel {
     private static _instance: PlaylistModel;
-    private _prevSQL: string;
+    private _prevSql: string;
     private _prevStmt: Function;       // Compiled statement
 
     private constructor() {
@@ -86,15 +86,76 @@ export class PlaylistModel {
         return this._exec(sql, params);
     }
 
-        /**
+    /**
+     * @description Returns the most played songs on a station.
+     */
+    public getMostPlayedSongs(station_id: number, limit: number): Array<any> {
+        let sql = "SELECT COUNT(*) AS play_count, FIRST(artists.name) AS artist_name, FIRST(songs.title) AS song_title FROM ? AS playlists " +
+        "INNER JOIN ? AS songs ON playlists.song_id = songs.id " +
+        "INNER JOIN ? AS artists ON songs.artist_id = artists.id " +
+        "WHERE playlists.station_id = ? " +
+        "GROUP BY playlists.song_id " +
+        "ORDER BY play_count DESC " +
+        "LIMIT " + limit;
+        let data = App.getInstance().getRadioData();
+        let params = [data.playlists, data.songs, data.artists, station_id];
+        return this._exec(sql, params);
+    }
+
+    /**
+     * @description Returns the most played artists on a station.
+     */
+    public getMostPlayedArtists(station_id: number, limit: number): Array<any> {
+        let sql = "SELECT COUNT(*) AS play_count, FIRST(artists.name) AS artist_name FROM ? AS playlists " +
+        "INNER JOIN ? AS songs ON playlists.song_id = songs.id " +
+        "INNER JOIN ? AS artists ON songs.artist_id = artists.id " +
+        "WHERE playlists.station_id = ? " +
+        "GROUP BY songs.artist_id " +
+        "ORDER BY play_count DESC " +
+        "LIMIT " + limit;
+        let data = App.getInstance().getRadioData();
+        let params = [data.playlists, data.songs, data.artists, station_id];
+        return this._exec(sql, params);
+    }
+
+    /**
+     * @description Returns the most played songs with christmas keywords in the song title.
+     */
+    public getMostPlayedChristmasSongs(station_id: number, limit: number): Array<any> {
+        let sql = "SELECT COUNT(*) AS play_count, FIRST(artists.name) AS artist_name, FIRST(songs.title) AS song_title FROM ? AS playlists " +
+        "INNER JOIN ? AS songs ON playlists.song_id = songs.id " +
+        "INNER JOIN ? AS artists ON songs.artist_id = artists.id " +
+        "WHERE playlists.station_id = ? " +
+        "AND (";
+        let keywords = [
+            "christmas", "jingle", "bells", "reindeer", "santa", "baby it's cold", "snow", "feliz navidad",
+            "grandma got run over", "little drummer", "mary", "december"
+        ];
+        for (let i=0; i<keywords.length; ++i) {
+            keywords[i] = '%' + keywords[i] + '%';
+
+            sql += "songs.title LIKE ? ";
+            if (i < keywords.length - 1) {
+                sql += "OR ";
+            }
+        }
+        sql += ") GROUP BY songs.title " +
+        "ORDER BY play_count DESC " +
+        "LIMIT " + limit;
+        let data = App.getInstance().getRadioData();
+        let params = [data.playlists, data.songs, data.artists, station_id].concat(keywords);
+        return this._exec(sql, params);
+    }
+
+    /**
      * @description Creates and executes a prepared statement.
      */
     private _exec(sql: string, parameters: Array<any>): any {
-        if (sql === this._prevSQL && this._prevStmt) {
+        if (sql === this._prevSql && this._prevStmt) {
             return this._prevStmt(parameters);
         }
 
-        this._prevSQL = sql;
+        this._prevSql = sql;
         this._prevStmt = window.alasql.compile(sql);
         return this._prevStmt(parameters);
     }

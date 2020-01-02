@@ -39,6 +39,7 @@
                             <li><a href="http://983maxfm.com/" target="_blank">MAX FM 98.3</a></li>
                         </ul>
                         <br>
+                        <p><strong id="data-stats"></strong></p>
                         <h3>Playlists</h3>
                         <div class="column col-6 col-sm-12">
                             <div class="form-horizontal">
@@ -121,23 +122,29 @@
                         </ul>
 
                         <h3>Data</h3>
-                        <div class="form-horizontal">
-                            <div class="form-group">
-                                <div class="col-4 col-sm-12">
-                                    <label class="form-label" for="opt-100-most-played-songs">
-                                        <input type="radio" id="opt-100-most-played-songs" name="opt-data-selection" value="100_mp_songs" disabled>
-                                        <i class="form-icon"></i> 100 Most Played Songs
-                                    </label>
-                                    <label class="form-label" for="opt-100-most-played-artists">
-                                        <input type="radio" id="opt-100-most-played-artists" name="opt-data-selection" value="100_mp_artists" disabled>
-                                        <i class="form-icon"></i> 100 Most Played Artists
-                                    </label>
-                                    <label class="form-label" for="opt-100-most-played-christmas">
-                                        <input type="radio" id="opt-100-most-played-christmas" name="opt-data-selection" value="100_mp_christmas" disabled>
-                                        <i class="form-icon"></i> 100 Most Played Christmas Songs
-                                    </label>
+                        <form name="data-form" action="#">
+                            <div class="form-horizontal">
+                                <div class="form-group">
+                                    <div id="opt-stations" class="col-5 col-sm-12"></div>
+                                        <div class="col-7 col-sm-12">
+                                            <label class="form-radio" for="opt-100-most-played-songs">
+                                                <input type="radio" id="opt-100-most-played-songs" name="opt-data-selection" value="100_mp_songs" disabled>
+                                                <i class="form-icon"></i> 100 Most Played Songs
+                                            </label>
+                                            <label class="form-radio" for="opt-100-most-played-artists">
+                                                <input type="radio" id="opt-100-most-played-artists" name="opt-data-selection" value="100_mp_artists" disabled>
+                                                <i class="form-icon"></i> 100 Most Played Artists
+                                            </label>
+                                            <label class="form-radio" for="opt-100-most-played-christmas">
+                                                <input type="radio" id="opt-100-most-played-christmas" name="opt-data-selection" value="100_mp_christmas" disabled>
+                                                <i class="form-icon"></i> 100 Most Played Christmas Songs
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            </form>
+
+                            <div id="data-table-container"></div>
                         </div>
                     </main>
                 </div>

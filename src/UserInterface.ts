@@ -56,7 +56,9 @@ export class UserInterface {
     private _playlistsPaginationPrev: HTMLElement;
     private _playlistsPaginationNext: HTMLElement;
 
-    private _isActive: boolean = false;
+    private _opt100MostPlayedSongs: HTMLInputElement;
+    private _opt100MostPlayedArtists: HTMLInputElement;
+    private _opt100MostPlayedChristmas: HTMLInputElement;
 
     private _pageNumber: number = 0;
 
@@ -85,8 +87,6 @@ export class UserInterface {
      * @description Finds all of the user interface elements on the page.
      */
     public init() {
-        this._isActive = false;
-
         try {
             this._selStations = <HTMLSelectElement>_$('#sel-stations').single;
             this._chkAllStations = <HTMLInputElement>_$('#chk-all-stations').single;
@@ -101,9 +101,18 @@ export class UserInterface {
             this._playlistsPaginationPrev = <HTMLElement>_$('#playlists-pagination-next').single;
             this._playlistsPaginationNext = <HTMLElement>_$('#playlists-pagination-next').single;
 
+            this._opt100MostPlayedSongs = <HTMLInputElement>_$('#opt-100-most-played-songs').single;
+            this._opt100MostPlayedArtists = <HTMLInputElement>_$('#opt-100-most-played-artists').single;
+            this._opt100MostPlayedChristmas = <HTMLInputElement>_$('#opt-100-most-played-christmas').single;
+
             this._populateSelStations();
             this._setupEventListeners();
-            this._enableSearchForm(true);
+            this._enableControls(true);
+            this._populateStationOptions();
+
+            let data = App.getInstance().getRadioData();
+            (<HTMLElement>_$('#data-stats').single).textContent = 'Loaded: ' + data.stations.length + ' stations, ' +
+                data.artists.length + ' artists, ' + data.songs.length + ' songs, ' + data.playlists.length + ' playlist entries';
 
             // Refreshing keeps the box checked
             this._selectAllStations(this._chkAllStations.checked);
@@ -128,6 +137,32 @@ export class UserInterface {
         }
     }
 
+    private _populateStationOptions() {
+        let div = _$('#opt-stations').single;
+        let stations = App.getInstance().getRadioData().stations;
+        for (let s of stations) {
+            let label = <HTMLLabelElement>document.createElement('label');
+            label.htmlFor = 'opt-station-' + s.id;
+            label.className = 'form-radio';
+
+            let option = document.createElement('input');
+            option.id = label.htmlFor;
+            option.type = 'radio';
+            option.name = 'opt-station';
+            option.value = s.id;
+            option.addEventListener('change', this._onDataSelectionChange.bind(this));
+            label.appendChild(option);
+
+            let i = document.createElement('i');
+            i.className = 'form-icon';
+            label.appendChild(i);
+
+            let text = document.createTextNode(s.name);
+            label.appendChild(text);
+            div.appendChild(label);
+        }
+    }
+
     /**
      * @description Sets up the event listeners for the UI elements.
      */
@@ -135,12 +170,16 @@ export class UserInterface {
         this._chkAllStations.addEventListener('change', this._onChkAllStationsChange.bind(this));
         this._btnSearchSubmit.addEventListener('click', this._onBtnSearchSubmitClick.bind(this));
         this._btnSearchClear.addEventListener('click', this._onBtnSearchClearClick.bind(this));
+
+        this._opt100MostPlayedArtists.addEventListener('change', this._onDataSelectionChange.bind(this));
+        this._opt100MostPlayedSongs.addEventListener('change', this._onDataSelectionChange.bind(this));
+        this._opt100MostPlayedChristmas.addEventListener('change', this._onDataSelectionChange.bind(this));
     }
 
     /**
-     * @description Enables or disables the search form.
+     * @description Enables or disables the UI controls.
      */
-    private _enableSearchForm(enabled: boolean) {
+    private _enableControls(enabled: boolean) {
         let disabled = !enabled;
         this._selStations.disabled = disabled;
         this._chkAllStations.disabled = disabled;
@@ -149,6 +188,10 @@ export class UserInterface {
         this._btnSearchSubmit.disabled = disabled;
         this._btnSearchClear.disabled = disabled;
         this._selLimit.disabled = disabled;
+
+        this._opt100MostPlayedSongs.disabled = disabled;
+        this._opt100MostPlayedArtists.disabled = disabled;
+        this._opt100MostPlayedChristmas.disabled = disabled;
     }
 
     /**
@@ -194,6 +237,45 @@ export class UserInterface {
         this._txtSongTitle.value = '';
         this._chkAllStations.checked = false;
         this._selLimit.selectedIndex = 0;
+    }
+
+    private _onDataSelectionChange() {
+        let station_id = (<RadioNodeList>document.forms[0].elements.namedItem('opt-station')).value;
+        let data_selection = (<RadioNodeList>document.forms[0].elements.namedItem('opt-data-selection')).value;
+
+        if (station_id !== '' && data_selection !== '') {
+            let station_id_int = parseInt(station_id, 10);
+            let data = null;
+            let headers: Array<string> = [];
+            let fields: Array<string> = [];
+            switch (data_selection) {
+                case '100_mp_songs':
+                    data = PlaylistModel.getInstance().getMostPlayedSongs(station_id_int, 100);
+                    headers = ['Count', 'Artist', 'Song Title'];
+                    fields = ['play_count', 'artist_name', 'song_title'];
+                    break;
+                case '100_mp_artists':
+                    data = PlaylistModel.getInstance().getMostPlayedArtists(station_id_int, 100);
+                    headers = ['Count', 'Artist'];
+                    fields = ['play_count', 'artist_name'];
+                    break;
+                case '100_mp_christmas':
+                    data = PlaylistModel.getInstance().getMostPlayedChristmasSongs(station_id_int, 100);
+                    headers= ['Count', 'Artist', 'Song Title'];
+                    fields = ['play_count', 'artist_name', 'song_title'];
+                    break;
+            }
+
+            if (data !== null) {
+                let table = document.getElementById('data-table');
+                if (table) {
+                    table.parentElement.removeChild(table);
+                }
+
+                table = this._createTable('data-table', headers, fields, data);
+                _$('#data-table-container').single.appendChild(table);
+            }
+        }
     }
 
     /**
