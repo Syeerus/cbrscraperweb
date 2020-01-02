@@ -11,7 +11,7 @@ export class App {
     public static readonly DATA_FILE = 'cbrs.db.json.bz2';
     public static readonly MAX_DATA_TRANSFER_ATTEMPTS = 3;
 
-    private static _instance: App = null;
+    private static _instance: App;
 
     private _radioData: any = null;
     private _dataTransferAttempts: number = 0;
@@ -28,6 +28,13 @@ export class App {
         }
 
         return App._instance;
+    }
+
+    /**
+     * @description Destroys the instance of the app.
+     */
+    public static destroyInstance() {
+        App._instance = null;
     }
 
     /**

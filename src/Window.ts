@@ -12,4 +12,5 @@ interface bz2 {
 
 interface Window {
     bz2: bz2;
+    alasql: any;
 }

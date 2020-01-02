@@ -6,10 +6,11 @@
  */
 
 import { App } from "./App";
+import { PlaylistModel } from "./PlaylistModel";
 import { ElementsNotFoundException } from './Exceptions';
 
 /**
- * @description Used for returning elementss from the simple query function.
+ * @description Used for returning elements from the simple query function.
  */
 interface SimpleQueryObject {
     multi: NodeListOf<Element>;
@@ -57,6 +58,8 @@ export class UserInterface {
 
     private _isActive: boolean = false;
 
+    private _pageNumber: number = 0;
+
     private constructor() {
     }
 
@@ -69,6 +72,13 @@ export class UserInterface {
         }
 
         return UserInterface._instance;
+    }
+
+    /**
+     * @description Destroys the instance of the class.
+     */
+    public static destroyInstance() {
+        UserInterface._instance = null;
     }
 
     /**
@@ -150,11 +160,32 @@ export class UserInterface {
         }
     }
 
+    /**
+     * @description Returns the values of the selected indices.
+     */
+    private _getSelectedStations(): Array<number> {
+        let selected = [];
+        for (let i=0; i<this._selStations.options.length; ++i) {
+            if (this._selStations.options[i].selected) {
+                selected.push(parseInt(this._selStations.options[i].value, 10));
+            }
+        }
+        return selected;
+    }
+
     private _onChkAllStationsChange() {
         this._selectAllStations(this._chkAllStations.checked);
     }
 
     private _onBtnSearchSubmitClick() {
+        let station_ids = this._getSelectedStations();
+        let artist_name = '%' + this._txtArtist.value + '%';
+        let song_title = '%' + this._txtSongTitle.value + '%';
+        let limit = parseInt(this._selLimit.value, 10) || 25;
+        let offset = 0;
+        this._pageNumber = 0;
+        let total_records = PlaylistModel.getInstance().searchTotal(station_ids, artist_name, song_title);
+        let records = PlaylistModel.getInstance().search(station_ids, artist_name, song_title, limit, offset);
     }
 
     private _onBtnSearchClearClick() {
@@ -164,4 +195,36 @@ export class UserInterface {
         this._chkAllStations.checked = false;
         this._selLimit.selectedIndex = 0;
     }
+
+    /**
+     * @description Creates and returns a new table.
+     */
+    private _createTable(id: string, headers: Array<string>, fields: Array<string>, data: Array<any>): HTMLTableElement {
+        let table = document.createElement('table');
+        table.id = id;
+        table.classList.add('table', 'table-striped', 'table-hover');
+        let thead = document.createElement('thead');
+        let tr = document.createElement('tr');
+        for (let label of headers) {
+            let th = document.createElement('th');
+            th.textContent = label;
+            tr.appendChild(th);
+        }
+        thead.appendChild(tr);
+        table.appendChild(thead);
+
+        let tbody = document.createElement('tbody');
+        for (let row of data) {
+            tr = document.createElement('tr');
+            for (let f of fields) {
+                let td = document.createElement('td');
+                td.textContent = row[f];
+                tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        return table;
+    }
+
 }
