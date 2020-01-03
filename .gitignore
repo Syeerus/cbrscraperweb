@@ -3,7 +3,6 @@
 .idea
 
 # Database files
-*.db
 backup/
 
 # Byte-compiled / optimized / DLL files
