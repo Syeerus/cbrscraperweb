@@ -143,7 +143,7 @@ export class PlaylistModel {
                 sql += "OR ";
             }
         }
-        sql += ") GROUP BY songs.title " +
+        sql += ") GROUP BY playlists.song_id " +
         "ORDER BY play_count DESC " +
         "LIMIT " + limit;
         let data = App.getInstance().getRadioData();

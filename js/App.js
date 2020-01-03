@@ -209,7 +209,7 @@ var PlaylistModel = (function () {
                 sql += "OR ";
             }
         }
-        sql += ") GROUP BY songs.title " +
+        sql += ") GROUP BY playlists.song_id " +
             "ORDER BY play_count DESC " +
             "LIMIT " + limit;
         var data = App_1.App.getInstance().getRadioData();
