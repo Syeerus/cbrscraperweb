@@ -36,7 +36,7 @@ export class PlaylistModel {
     /**
      * @description Performs a search query and returns the number of records found.
      */
-    public searchTotal(station_ids: Array<number>, artist_name: string, song_title: string): number {
+    public searchTotal(station_ids: Array<number>, artist_name: string, song_title: string, start_date: number, end_date: number): number {
         if (station_ids.length <= 0) {
             // Can't perform a search
             return 0;
@@ -52,9 +52,11 @@ export class PlaylistModel {
                     "INNER JOIN ? AS stations ON playlists.station_id = stations.id " +
                     "WHERE playlists.station_id IN (" + station_placeholders.substring(0, station_placeholders.length - 1) + ") " +
                     "AND artists.name LIKE ? " +
-                    "AND songs.title LIKE ?";
+                    "AND songs.title LIKE ? " +
+                    "AND playlists.timestamp >= ? " +
+                    "AND playlists.timestamp <= ?";
         let data = App.getInstance().getRadioData();
-        let params = [data.playlists, data.songs, data.artists, data.stations].concat(station_ids).concat([artist_name, song_title]);
+        let params = [data.playlists, data.songs, data.artists, data.stations].concat(station_ids).concat([artist_name, song_title, start_date, end_date]);
         let results = this._exec(sql, params);
         return results[0].total_records;
     }
@@ -62,7 +64,7 @@ export class PlaylistModel {
     /**
      * @description Performs a search query and returns the records found.
      */
-    public search(station_ids: Array<number>, artist_name: string, song_title: string, limit: number, offset: number): Array<any> {
+    public search(station_ids: Array<number>, artist_name: string, song_title: string, start_date: number, end_date: number, limit: number, offset: number): Array<any> {
         if (station_ids.length <= 0) {
             // Can't perform a search
             return [];
@@ -79,10 +81,12 @@ export class PlaylistModel {
         "WHERE playlists.station_id IN (" + station_placeholders.substring(0, station_placeholders.length - 1) + ") " +
         "AND artists.name LIKE ? " +
         "AND songs.title LIKE ? " +
+        "AND playlists.timestamp >= ? " +
+        "AND playlists.timestamp <= ? " +
         "ORDER BY playlists.timestamp " +
         "LIMIT " + limit + " OFFSET " + offset;
         let data = App.getInstance().getRadioData();
-        let params = [data.playlists, data.songs, data.artists, data.stations].concat(station_ids).concat([artist_name, song_title]);
+        let params = [data.playlists, data.songs, data.artists, data.stations].concat(station_ids).concat([artist_name, song_title, start_date, end_date]);
         return this._exec(sql, params);
     }
 

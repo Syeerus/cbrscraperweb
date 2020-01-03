@@ -40,9 +40,17 @@ ul > li {
 }
 
 .hidden {
-    display: none;
+    visibility: hidden;;
 }
 
 #sel-stations {
     min-width: 200px;
+}
+
+.pagination {
+    display: inline-block !important;
+}
+
+.pagination > li {
+    display: inline !important;
 }

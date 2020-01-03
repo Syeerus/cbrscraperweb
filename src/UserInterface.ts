@@ -47,11 +47,12 @@ export class UserInterface {
     private _chkAllStations: HTMLInputElement;
     private _txtArtist: HTMLInputElement;
     private _txtSongTitle: HTMLInputElement;
+    private _dateStart: HTMLInputElement;
+    private _dateEnd: HTMLInputElement;
     private _btnSearchSubmit: HTMLButtonElement;
     private _btnSearchClear: HTMLButtonElement;
     private _selLimit: HTMLSelectElement;
 
-    private _playlistsTable: HTMLTableElement;
     private _playlistsPagination: HTMLDivElement;
     private _playlistsPaginationPrev: HTMLElement;
     private _playlistsPaginationNext: HTMLElement;
@@ -61,6 +62,9 @@ export class UserInterface {
     private _opt100MostPlayedChristmas: HTMLInputElement;
 
     private _pageNumber: number = 0;
+    private _lastPageNumber: number;
+
+    private _onPaginationLinkClickCallback = this._onPaginationLinkClick.bind(this);
 
     private constructor() {
     }
@@ -92,13 +96,14 @@ export class UserInterface {
             this._chkAllStations = <HTMLInputElement>_$('#chk-all-stations').single;
             this._txtArtist = <HTMLInputElement>_$('#txt-artist').single;
             this._txtSongTitle = <HTMLInputElement>_$('#txt-song-title').single;
+            this._dateStart = <HTMLInputElement>_$('#date-start').single;
+            this._dateEnd = <HTMLInputElement>_$('#date-end').single;
             this._btnSearchSubmit = <HTMLButtonElement>_$('#btn-search-submit').single;
             this._btnSearchClear = <HTMLButtonElement>_$('#btn-search-clear').single;
             this._selLimit = <HTMLSelectElement>_$('#sel-limit').single;
 
-            this._playlistsTable = <HTMLTableElement>_$('#playlists-table').single;
             this._playlistsPagination = <HTMLDivElement>_$('#playlists-pagination').single;
-            this._playlistsPaginationPrev = <HTMLElement>_$('#playlists-pagination-next').single;
+            this._playlistsPaginationPrev = <HTMLElement>_$('#playlists-pagination-prev').single;
             this._playlistsPaginationNext = <HTMLElement>_$('#playlists-pagination-next').single;
 
             this._opt100MostPlayedSongs = <HTMLInputElement>_$('#opt-100-most-played-songs').single;
@@ -185,6 +190,8 @@ export class UserInterface {
         this._chkAllStations.disabled = disabled;
         this._txtArtist.disabled = disabled;
         this._txtSongTitle.disabled = disabled;
+        this._dateStart.disabled = disabled;
+        this._dateEnd.disabled = disabled;
         this._btnSearchSubmit.disabled = disabled;
         this._btnSearchClear.disabled = disabled;
         this._selLimit.disabled = disabled;
@@ -221,20 +228,15 @@ export class UserInterface {
     }
 
     private _onBtnSearchSubmitClick() {
-        let station_ids = this._getSelectedStations();
-        let artist_name = '%' + this._txtArtist.value + '%';
-        let song_title = '%' + this._txtSongTitle.value + '%';
-        let limit = parseInt(this._selLimit.value, 10) || 25;
-        let offset = 0;
-        this._pageNumber = 0;
-        let total_records = PlaylistModel.getInstance().searchTotal(station_ids, artist_name, song_title);
-        let records = PlaylistModel.getInstance().search(station_ids, artist_name, song_title, limit, offset);
+        this._performSearch();
     }
 
     private _onBtnSearchClearClick() {
         this._selectAllStations(false);
         this._txtArtist.value = '';
         this._txtSongTitle.value = '';
+        this._dateStart.value = '';
+        this._dateEnd.value = '';
         this._chkAllStations.checked = false;
         this._selLimit.selectedIndex = 0;
     }
@@ -276,6 +278,123 @@ export class UserInterface {
                 _$('#data-table-container').single.appendChild(table);
             }
         }
+    }
+
+    private _performSearch(reset_page_num: boolean = true) {
+        if (reset_page_num)
+            this._pageNumber = 0;
+
+        let station_ids = this._getSelectedStations();
+        let artist_name = '%' + this._txtArtist.value + '%';
+        let song_title = '%' + this._txtSongTitle.value + '%';
+        let start_date = this._dateStart.valueAsNumber;
+        if (isNaN(start_date))
+            start_date = 0;
+        else
+            start_date = start_date / 1000;     // Convert to seconds
+
+        let end_date = this._dateEnd.valueAsNumber;
+        if (isNaN(end_date))
+            end_date = Math.floor((new Date()).getTime() / 1000);
+        else
+            end_date = end_date / 1000;         // Convert to seconds
+
+        let limit = parseInt(this._selLimit.value, 10) || 25;
+        let offset = this._pageNumber * limit;
+        let total_records = PlaylistModel.getInstance().searchTotal(station_ids, artist_name, song_title, start_date, end_date);
+        let records = PlaylistModel.getInstance().search(station_ids, artist_name, song_title, start_date, end_date, limit, offset);
+        for (let i=0; i<records.length; ++i) {
+            // Refine the date to a time string
+            records[i].timestamp = (new Date(records[i].timestamp * 1000)).toUTCString();
+        }
+
+        _$('#results').single.textContent = total_records + " results";
+
+        let total_pages = Math.ceil(total_records / limit);
+        this._lastPageNumber = (total_pages > 0) ? total_pages - 1 : 0;
+
+        let table = document.getElementById('playlists-table');
+        if (table)
+            table.parentElement.removeChild(table);
+
+        table = this._createTable('playlists-table', ['Station', 'Artist', 'Song Title', 'Time'], ['station_name', 'artist_name', 'song_title', 'timestamp'], records);
+        _$('#playlist-table-container').single.appendChild(table);
+
+        this._generatePaginationTable(total_pages);
+    }
+
+    private _generatePaginationTable(total_pages: number) {
+        this._playlistsPagination.classList.remove('hidden');
+        let elements = Array.prototype.slice.call(this._playlistsPagination.children);
+        for (let e of elements) {
+            if (e !== this._playlistsPaginationPrev && e !== this._playlistsPaginationNext) {
+                this._playlistsPagination.removeChild(e);
+            }
+        }
+
+        for (let i=0; i<total_pages; ++i) {
+            let e = document.createElement('li');
+            e.classList.add('page-item');
+            if (i === this._pageNumber)
+                e.classList.add('active');
+            let a = document.createElement('a');
+            let num_str = (i + 1).toString();
+            a.href = '#';
+            a.onclick = function() { return false; };
+            a.dataset.page = num_str;
+            a.textContent = num_str;
+            a.addEventListener('click', this._onPaginationLinkClickCallback);
+            e.appendChild(a);
+            this._playlistsPaginationNext.before(e);
+        }
+
+        if (this._pageNumber === 0) {
+            this._playlistsPaginationPrev.classList.add('disabled');
+            _$('a[data-page="-1"]').single.removeEventListener('click', this._onPaginationLinkClickCallback);
+            if (total_pages > 1) {
+                this._playlistsPaginationNext.classList.remove('disabled');
+                _$('a[data-page="-2"]').single.addEventListener('click', this._onPaginationLinkClickCallback);
+            }
+            else {
+                this._playlistsPaginationNext.classList.add('disabled');
+                _$('a[data-page="-2"]').single.removeEventListener('click', this._onPaginationLinkClickCallback);
+            }
+        }
+        else {
+            this._playlistsPaginationPrev.classList.remove('disabled');
+            _$('a[data-page="-1"]').single.addEventListener('click', this._onPaginationLinkClickCallback);
+            if (this._pageNumber === total_pages - 1) {
+                this._playlistsPaginationNext.classList.add('disabled');
+                _$('a[data-page="-2"]').single.removeEventListener('click', this._onPaginationLinkClickCallback);
+            }
+            else {
+                this._playlistsPaginationNext.classList.remove('disabled');
+                _$('a[data-page="-2"]').single.addEventListener('click', this._onPaginationLinkClickCallback);
+            }
+        }
+    }
+
+    private _onPaginationLinkClick(e: Event) {
+        let page = parseInt((<HTMLElement>e.target).dataset.page, 10) || 0;
+        if (page === -1 && this._pageNumber > 0) {
+            --this._pageNumber;
+        }
+        else if (page === -2 && this._pageNumber < this._lastPageNumber) {
+            ++this._pageNumber;
+        }
+        else {
+            if (page < 1) {
+                this._pageNumber = 0;
+            }
+            else if (page > this._lastPageNumber + 1) {
+                this._pageNumber  = this._lastPageNumber;
+            }
+            else {
+                this._pageNumber = page - 1;
+            }
+        }
+
+        this._performSearch(false);
     }
 
     /**

@@ -79,6 +79,22 @@
                                 </div>
                                 <div class="form-group">
                                     <div class="col-3 col-sm-12">
+                                        <label class="form-label" for="date-start">Start Date:</label>
+                                    </div>
+                                    <div class="col-9 col-sm-12">
+                                        <input id="date-start" class="form-input" type="date" disabled>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-3 col-sm-12">
+                                        <label class="form-label" for="date-end">End Date:</label>
+                                    </div>
+                                    <div class="col-9 col-sm-12">
+                                        <input id="date-end" class="form-input" type="date" disabled>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-3 col-sm-12">
                                         <label class="form-label" for="sel-limit">Limit</label>
                                     </div>
                                     <div class="col-9 col-sm-12">
@@ -100,27 +116,18 @@
                                 </div>
                             </div>
                         </div>
-                        <table id="playlists-table" class="table table-striped table-hover hidden">
-                            <thead>
-                                <tr>
-                                    <th>Station</th>
-                                    <th>Artist</th>
-                                    <th>Song</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
+                        <p id="results"></p>
+                        <div id="playlist-table-container"></div>
                         <ul id="playlists-pagination" class="pagination hidden">
                             <li id="playlists-pagination-prev" class="page-item disabled">
-                                <a href="#" tabindex="-1">Prev</a>
+                                <a href="#" onclick="return false;" data-page="-1" tabindex="-1">Prev</a>
                             </li>
                             <li id="playlists-pagination-next" class="page-item disabled">
-                                <a href="#">Next</a>
+                                <a href="#" onclick="return false;" data-page="-2">Next</a>
                             </li>
                         </ul>
-
+                        <br>
+                        <br>
                         <h3>Data</h3>
                         <form name="data-form" action="#">
                             <div class="form-horizontal">
