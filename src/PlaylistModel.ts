@@ -133,7 +133,7 @@ export class PlaylistModel {
         "AND (";
         let keywords = [
             "christmas", "jingle", "bells", "reindeer", "santa", "baby it's cold", "snow", "feliz navidad",
-            "grandma got run over", "little drummer", "mary", "december"
+            "grandma got run over", "little drummer", "mary", "december", "winter", "let it snow", "frosty"
         ];
         for (let i=0; i<keywords.length; ++i) {
             keywords[i] = '%' + keywords[i] + '%';
